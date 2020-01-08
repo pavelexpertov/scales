@@ -132,5 +132,8 @@ for classifier, mean, std in sorted_list:
 After experimenting with 11 algorithms, it looks like a neural network type classifier wins the testing round.
 
 Now I need to perform two things:
-    - I will need to delve further into algorithms to understand how they work as to have an idea why they perform either poorly or brilliantly.
+    - I will need to delve further into algorithms to understand how they work as to have an idea why they perform either poorly or brilliantly. Algorithms I decided to learn about are:
+        1. MLPClassififer -- to understand neural networks in general
+        2. SGDClassifier -- to understand the stochastic classifier since it's second best
+        3. Decision Tree -- to understand decision trees since it's the worst model to train from the get go.
     - During testing, I have been wondering about the current dataset and I think I have managed to notice few descrepencies I didn't see before. I will elaborate on this later.
