@@ -129,11 +129,125 @@ for classifier, mean, std in sorted_list:
     print(classifier, 'Mean:', mean, 'std:', std)
 
 # <markdown>
-After experimenting with 11 algorithms, it looks like a neural network type classifier wins the testing round.
+# After experimenting with 11 algorithms, it looks like a neural network type classifier wins the testing round.
+#
+# Now I need to perform two things:
+#     - I will need to delve further into algorithms to understand how they work as to have an idea why they perform either poorly or brilliantly. Algorithms I decided to learn about are:
+#         1. MLPClassififer -- to understand neural networks in general
+#         2. SGDClassifier -- to understand the stochastic classifier since it's second best
+#         3. Decision Tree -- to understand decision trees since it's the worst model to train from the get go.
+#     - During testing, I have been wondering about the current dataset and I think I have managed to notice few descrepencies I didn't see before. I will elaborate on this later.
+#
 
-Now I need to perform two things:
-    - I will need to delve further into algorithms to understand how they work as to have an idea why they perform either poorly or brilliantly. Algorithms I decided to learn about are:
-        1. MLPClassififer -- to understand neural networks in general
-        2. SGDClassifier -- to understand the stochastic classifier since it's second best
-        3. Decision Tree -- to understand decision trees since it's the worst model to train from the get go.
-    - During testing, I have been wondering about the current dataset and I think I have managed to notice few descrepencies I didn't see before. I will elaborate on this later.
+# In [ ]
+#     ______                  __  _                ___
+#    /  _/ /____  _________ _/ /_(_)___  ____     |__ \
+#    / // __/ _ \/ ___/ __ `/ __/ / __ \/ __ \    __/ /
+#  _/ // /_/  __/ /  / /_/ / /_/ / /_/ / / / /   / __/
+# /___/\__/\___/_/   \__,_/\__/_/\____/_/ /_/   /____/
+#
+
+# <markdown>
+# Purpose of this iteration is to see whether decision trees algorithms will be improved from its worse accuracy performance.
+
+# The plan is to test different set of configurations and then do the same thing for feature engineered features.
+
+# After reading about complex decisions trees that can fail to generalise a problem [Link](https://scikit-learn.org/stable/modules/tree.html#tree),
+# the following has been advised to attempt to reduce the chances of such issue:
+# - Set a required minimum samples at leaf nodes.
+# - Set a depth level number to say how far the tree can go.
+
+
+# In [ ]
+# Testing parameters with original dataset
+from sklearn.model_selection import GridSearchCV
+
+decision_tree_clf = DecisionTreeClassifier()
+parameters = {
+    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None],
+    'min_samples_leaf': [0.2, 0.4, 0.5, 1]
+}
+clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
+X = df.loc[:, ['LW','LD','RW','RD']]
+y = df.loc[:, ['C']]
+clf.fit(X, y)
+pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()
+
+# In [ ]
+# Creating columns for the calculated weights.
+left_array = df.loc[:, ['LW', 'LD']].to_numpy()
+calculations = [item[0] * item[1] for item in left_array]
+df['L_calc'] = calculations
+right_array = df.loc[:, ['RW', 'RD']].to_numpy()
+calculations = [item[0] * item[1] for item in right_array]
+df['R_calc'] = calculations
+df.head()
+
+# In [ ]
+# Testing parameters with a new feature of calculations of weight and height for each side.
+
+decision_tree_clf = DecisionTreeClassifier()
+parameters = {
+    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None],
+    'min_samples_leaf': [0.2, 0.4, 0.5, 1]
+}
+clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
+X = df.loc[:, ['LW','LD','RW','RD', 'L_calc', 'R_calc']]
+y = df.loc[:, ['C']]
+clf.fit(X, y)
+pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()
+
+# In [ ]
+# Test the configurations by using just the calculations of the weights and distance.
+decision_tree_clf = DecisionTreeClassifier()
+parameters = {
+    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None],
+    'min_samples_leaf': [0.2, 0.4, 0.5, 1]
+}
+clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
+X = df.loc[:, [ 'L_calc', 'R_calc']]
+y = df.loc[:, ['C']]
+clf.fit(X, y)
+pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()
+
+
+# <markdown>
+It looks like by introducing the calculations of weights and heights for each side helped the decision tree tremendously. Especially when only providing the calculatins on their own.
+
+I suppose that such calculations is kinda like a cheat, because I think it makes it easier for the model to 'sense' the algorithmic logic.
+
+I am very interested to see what will happen if I introduce boolean flag features (like making a hot-spot (I think) type features that are used for neural networks).
+
+# In [ ]
+# Creating feature columns to represent hot-spotted boolean values for the classes.
+samples_array = df.loc[:, ['LW', 'LD', 'RW', 'RD']].to_numpy()
+df['left_flag'] = [(item[0] * item[1]) > (item[2] * item[3]) for item in samples_array]
+df['right_flag'] = [(item[0] * item[1]) < (item[2] * item[3]) for item in samples_array]
+df['balanced_flag'] = [(item[0] * item[1]) == (item[2] * item[3]) for item in samples_array]
+df.head()
+
+# In [ ]
+# Test the configurations by using just the calculations of the weights and distance.
+decision_tree_clf = DecisionTreeClassifier()
+parameters = {
+    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None],
+    'min_samples_leaf': [0.2, 0.4, 0.5, 1]
+}
+clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
+X = df.loc[:, ['LW', 'LD', 'RW', 'RD', 'left_flag', 'balanced_flag', 'right_flag']]
+y = df.loc[:, ['C']]
+clf.fit(X, y)
+pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()
+
+# In [ ]
+# Test the configurations by using just the calculations of the weights and distance.
+decision_tree_clf = DecisionTreeClassifier()
+parameters = {
+    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None],
+    'min_samples_leaf': [0.2, 0.4, 0.5, 1]
+}
+clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
+X = df.loc[:, ['left_flag', 'balanced_flag', 'right_flag']]
+y = df.loc[:, ['C']]
+clf.fit(X, y)
+pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()

@@ -119,3 +119,22 @@ It means that the nature of dataset was to test algorithm's ability to train a m
 
 It really explains why neural networks had the accuracy of 97% with low standard deviation since they learnt on mistakes and generalise the logic problem compared to
 other models.
+
+# In [ ]
+#     ______                  __  _                ___
+#    /  _/ /____  _________ _/ /_(_)___  ____     |__ \
+#    / // __/ _ \/ ___/ __ `/ __/ / __ \/ __ \    __/ /
+#  _/ // /_/  __/ /  / /_/ / /_/ / /_/ / / / /   / __/
+# /___/\__/\___/_/   \__,_/\__/_/\____/_/ /_/   /____/
+#
+
+# <markdown>
+After learning about the decision tree algorithms, I will try to engineer features that can help the algorithm to work better.
+
+The following comes to mind:
+1. Make two features to represent calculations for each side.
+2. Make three features to represent boolean values of left, right or balanced calculations. (i.e. make it look like a binary pattern like 1,0,0 for tipping to the left)
+3. Make a balanced dataset (i.e. Make an equal amount of examples for right and left classes since there are way more of them rather than balanced one).
+    1. Split it with all examples of the balanced class.
+    2. Split it with half examples of the balanced class.
+    3. Split it with one examples of the balanced class.
