@@ -126,6 +126,7 @@ recording_list.append(['With MLPClassifier', scores.mean(), scores.std()])
 # In [ ]
 sorted_list = sorted(recording_list, key=lambda item: item[1], reverse=True)
 for classifier, mean, std in sorted_list:
+for classifier, mean, std in sorted_list:
     print(classifier, 'Mean:', mean, 'std:', std)
 
 # <markdown>
@@ -171,7 +172,7 @@ clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
 X = df.loc[:, ['LW','LD','RW','RD']]
 y = df.loc[:, ['C']]
 clf.fit(X, y)
-pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()
+pd.DataFrame(clf.cv_results_).loc[:, ['param_max_depth', 'param_min_samples_leaf', 'mean_test_score', 'std_test_score', 'rank_test_score']].sort_values(by=['rank_test_score']).head()
 
 # In [ ]
 # Creating columns for the calculated weights.
@@ -195,7 +196,7 @@ clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
 X = df.loc[:, ['LW','LD','RW','RD', 'L_calc', 'R_calc']]
 y = df.loc[:, ['C']]
 clf.fit(X, y)
-pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()
+pd.DataFrame(clf.cv_results_).loc[:, ['param_max_depth', 'param_min_samples_leaf', 'mean_test_score', 'std_test_score', 'rank_test_score']].sort_values(by=['rank_test_score']).head()
 
 # In [ ]
 # Test the configurations by using just the calculations of the weights and distance.
@@ -208,15 +209,15 @@ clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
 X = df.loc[:, [ 'L_calc', 'R_calc']]
 y = df.loc[:, ['C']]
 clf.fit(X, y)
-pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()
+pd.DataFrame(clf.cv_results_).loc[:, ['param_max_depth', 'param_min_samples_leaf', 'mean_test_score', 'std_test_score', 'rank_test_score']].sort_values(by=['rank_test_score']).head()
 
 
 # <markdown>
-It looks like by introducing the calculations of weights and heights for each side helped the decision tree tremendously. Especially when only providing the calculatins on their own.
+# It looks like by introducing the calculations of weights and heights for each side helped the decision tree tremendously. Especially when only providing the calculatins on their own.
 
-I suppose that such calculations is kinda like a cheat, because I think it makes it easier for the model to 'sense' the algorithmic logic.
+# I suppose that such calculations is kinda like a cheat, because I think it makes it easier for the model to 'sense' the algorithmic logic.
 
-I am very interested to see what will happen if I introduce boolean flag features (like making a hot-spot (I think) type features that are used for neural networks).
+# I am very interested to see what will happen if I introduce boolean flag features (like making a hot-spot (I think) type features that are used for neural networks).
 
 # In [ ]
 # Creating feature columns to represent hot-spotted boolean values for the classes.
@@ -237,7 +238,7 @@ clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
 X = df.loc[:, ['LW', 'LD', 'RW', 'RD', 'left_flag', 'balanced_flag', 'right_flag']]
 y = df.loc[:, ['C']]
 clf.fit(X, y)
-pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()
+pd.DataFrame(clf.cv_results_).loc[:, ['param_max_depth', 'param_min_samples_leaf', 'mean_test_score', 'std_test_score', 'rank_test_score']].sort_values(by=['rank_test_score']).head()
 
 # In [ ]
 # Test the configurations by using just the calculations of the weights and distance.
@@ -250,4 +251,36 @@ clf = GridSearchCV(decision_tree_clf, parameters, cv=10)
 X = df.loc[:, ['left_flag', 'balanced_flag', 'right_flag']]
 y = df.loc[:, ['C']]
 clf.fit(X, y)
-pd.DataFrame(clf.cv_results_).sort_values(by=['rank_test_score']).head()
+pd.DataFrame(clf.cv_results_).loc[:, ['param_max_depth', 'param_min_samples_leaf', 'mean_test_score', 'std_test_score', 'rank_test_score']].sort_values(by=['rank_test_score']).head()
+
+# <markdown>
+Conclusions after trying feature engineering:
+- Calculated weights on each side:
+  - with the rest of features, it's on average 90%
+  - on their own, it's staggering 97%
+- Boolean flags
+  - With or without the rest of the feautres, it's pretty much 100%.
+    - In other words, I have already done the job for the algorithm :smiley:.
+
+Thus, it seems that the calculated weights of the features helps to make better guesses about the incoming values whereas the boolean flags are cheats.
+
+The next experiment will see whether I can make a model from balanced dataset where there are equal number of samples for each class.
+
+Before I do that though, I need to look into overfitting problems of the algorithm. During experiments, I noticed that the decision tree's accuracy would decrease
+if I fed it less training data when I performed different cross-validations (i.e. k-folds).
+What I would like to see is whether samples that sit on each end of the range (e.g. on value 1 and 5 rather than inbetween them) that can affect the accuracy and only use original features and the calculated weights.
+I will make the rations of class samples balanced as to be consistent with the mentioned experiment.
+
+ToDo Overfitting Experiments:
+- [ ] Only upper values of the range (i.e. 5 in weights and distance no matter what in other values as long as conditions are met)
+    - [ ] With original features
+    - [ ] With original features and the calculated weights
+- [ ] Only lower values of the range (i.e. 1 in weights and distance no matter what in other values as long as conditions are met)
+    - [ ] With original features
+    - [ ] With original features and the calculated weights
+- [ ] Upper and lower values of the range (i.e. both of the prior conditions)
+    - [ ] With original features
+    - [ ] With original features and the calculated weights
+
+# In [ ]
+upper_values_df = df[df.LW == 5 or df.LW == 5 or df.LW == 5 or df.LW == 5]
