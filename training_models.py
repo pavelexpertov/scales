@@ -371,10 +371,16 @@ accuracy_score(decision_tree_clf.predict(X), y)
 It looks like that the models still perform good even though I was expecting some overfitting problems. Even if there are only few samples to train from for particular boundaries
 (e.g. on average 70% accuracy for lower values and average 80)
 
+I believe it is because the samples have a wide range of values for weights and distances that still managed to make well-performed models
+(e.g. lower-values-only samples without the calculated weights would produce on average 59%).
+
+Thus, I shall make samples that only contain measurements that meet certain range criterial (i.e. maximum and minimum values)
+
 I believe this is because there's a wide range of the calculated weights for the classes and thus it helped the model
 to determine classes accurately. Like you can see below.
 
 # In [ ]
+# Checking out the calculated weights
 upper_samples_df.loc[:, ['L_calc', 'R_calc']].describe()
 lower_samples_df.loc[:, ['L_calc', 'R_calc']].describe()
 both_samples_df.loc[:, ['L_calc', 'R_calc']].describe()
@@ -386,3 +392,92 @@ both_samples_df.R_calc.nunique()
 
 # <markdown>
 Thus, I shall make a dataframes for calculated weights value to see whether I can achieve overfitting.
+
+# In [ ]
+upper_values_df = df[(df.LD >= 4) & (df.LW >= 4) & (df.RD >= 4) & (df.RW >= 4)]
+lower_values_df = df[(df.LD <= 2) & (df.LW <= 2) & (df.RD <= 2) & (df.RW <= 2)]
+upper_values_df.groupby('C').count()
+lower_values_df.groupby('C').count()
+lower_values_df[lower_values_df.C == 'B'].describe()
+lower_values_df[lower_values_df.C == 'R'].describe()
+lower_values_df[lower_values_df.C == 'L'].describe()
+upper_values_df[upper_values_df.C == 'B'].describe()
+upper_values_df[upper_values_df.C == 'R'].describe()
+upper_values_df[upper_values_df.C == 'L'].describe()
+# Ok, it looks like there are very few samples for training purposes which is kinda ideal for overfitting.
+# But what's more ideal is the range of calculated weights that hopefully will introduce overfitting.
+# It looks like there are only maximum 6 samples, I shall pick just 4 for each class and value boundary.
+SEED = 1111
+
+# Making random samples for lower values by each class
+bal_df = lower_values_df[lower_values_df.C == 'B']
+left_df = lower_values_df[lower_values_df.C == 'L']
+right_df = lower_values_df[lower_values_df.C == 'R']
+
+bal_samples = bal_df.sample(n=4, random_state=SEED)
+left_samples = left_df.sample(n=4, random_state=SEED)
+right_samples = right_df.sample(n=4, random_state=SEED)
+
+lower_samples_df = pd.concat([bal_samples, left_samples, right_samples])
+lower_samples_df.index
+
+# Making random samples for upper values by each class
+bal_df = upper_values_df[upper_values_df.C == 'B']
+left_df = upper_values_df[upper_values_df.C == 'L']
+right_df = upper_values_df[upper_values_df.C == 'R']
+bal_df.describe()
+left_df.describe()
+
+bal_samples = bal_df.sample(n=4, random_state=SEED)
+left_samples = left_df.sample(n=4, random_state=SEED)
+right_samples = right_df.sample(n=4, random_state=SEED)
+
+upper_samples_df = pd.concat([bal_samples, left_samples, right_samples])
+upper_samples_df.index
+
+both_samples_df = pd.concat([lower_samples_df, upper_samples_df])
+
+# In [ ]
+from sklearn.metrics import accuracy_score
+
+separated_df = separate_dataframe_from_training_one(df, lower_samples_df)
+
+decision_tree_clf = DecisionTreeClassifier()
+list_of_features = ['LW', 'LD', 'RW', 'RD', 'L_calc', 'R_calc']
+X = lower_samples_df.loc[:, list_of_features]
+y = lower_samples_df.loc[:, ['C']]
+decision_tree_clf.fit(X, y)
+X = separated_df.loc[:, list_of_features]
+y = separated_df.loc[:, ['C']]
+accuracy_score(decision_tree_clf.predict(X), y)
+
+# In [ ]
+separated_df = separate_dataframe_from_training_one(df, upper_samples_df)
+
+decision_tree_clf = DecisionTreeClassifier()
+list_of_features = ['LW', 'LD', 'RW', 'RD', 'L_calc', 'R_calc']
+# list_of_features = ['LW', 'LD', 'RW', 'RD']
+X = upper_samples_df.loc[:, list_of_features]
+y = upper_samples_df.loc[:, ['C']]
+decision_tree_clf.fit(X, y)
+X = separated_df.loc[:, list_of_features]
+y = separated_df.loc[:, ['C']]
+accuracy_score(decision_tree_clf.predict(X), y)
+
+# In [ ]
+separated_df = separate_dataframe_from_training_one(df, both_samples_df)
+
+decision_tree_clf = DecisionTreeClassifier()
+list_of_features = ['LW', 'LD', 'RW', 'RD', 'L_calc', 'R_calc']
+# list_of_features = ['LW', 'LD', 'RW', 'RD']
+X = both_samples_df.loc[:, list_of_features]
+y = both_samples_df.loc[:, ['C']]
+decision_tree_clf.fit(X, y)
+X = separated_df.loc[:, list_of_features]
+y = separated_df.loc[:, ['C']]
+accuracy_score(decision_tree_clf.predict(X), y)
+
+# <markdown>
+(Talk about that you think the weights have affected the models so that they don't get  IF YOU NEED TO )
+I believe this is because there's a wide range of the calculated weights for the classes and thus it helped the model
+to determine classes accurately. Like you can see below.
