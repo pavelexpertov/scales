@@ -368,15 +368,16 @@ y = separated_df.loc[:, ['C']]
 accuracy_score(decision_tree_clf.predict(X), y)
 
 # <markdown>
-It looks like that the models still perform good even though I was expecting some overfitting problems.
+It looks like that the models still perform good even though I was expecting some overfitting problems. Even if there are only few samples to train from for particular boundaries
+(e.g. on average 70% accuracy for lower values and average 80)
 
 I believe this is because there's a wide range of the calculated weights for the classes and thus it helped the model
 to determine classes accurately. Like you can see below.
 
 # In [ ]
-upper_samples_df.describe()
-lower_samples_df.describe()
-both_samples_df.describe()
+upper_samples_df.loc[:, ['L_calc', 'R_calc']].describe()
+lower_samples_df.loc[:, ['L_calc', 'R_calc']].describe()
+both_samples_df.loc[:, ['L_calc', 'R_calc']].describe()
 
 lower_samples_df.R_calc.nunique()
 lower_samples_df.L_calc.nunique()
@@ -384,4 +385,4 @@ both_samples_df.L_calc.nunique()
 both_samples_df.R_calc.nunique()
 
 # <markdown>
-Thus, I shall make a dataframes for calculated weights value.
+Thus, I shall make a dataframes for calculated weights value to see whether I can achieve overfitting.
