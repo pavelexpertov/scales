@@ -126,7 +126,6 @@ recording_list.append(['With MLPClassifier', scores.mean(), scores.std()])
 # In [ ]
 sorted_list = sorted(recording_list, key=lambda item: item[1], reverse=True)
 for classifier, mean, std in sorted_list:
-for classifier, mean, std in sorted_list:
     print(classifier, 'Mean:', mean, 'std:', std)
 
 # <markdown>
@@ -283,4 +282,106 @@ ToDo Overfitting Experiments:
     - [ ] With original features and the calculated weights
 
 # In [ ]
-upper_values_df = df[df.LW == 5 or df.LW == 5 or df.LW == 5 or df.LW == 5]
+upper_values_df = df[(df.LD == 5) | (df.LW == 5) | (df.RD == 5) | (df.RW == 5)]
+lower_values_df = df[(df.LD == 1) | (df.LW == 1) | (df.RD == 1) | (df.RW == 1)]
+upper_values_df.groupby('C').count()
+lower_values_df.groupby('C').count()
+
+# From the looks of it, I will choose 15 samples of each class for lower and upper values
+SEED = 1111
+
+# Making random samples for lower values by each class
+bal_df = lower_values_df[lower_values_df.C == 'B']
+left_df = lower_values_df[lower_values_df.C == 'L']
+right_df = lower_values_df[lower_values_df.C == 'R']
+
+bal_samples = bal_df.sample(n=15, random_state=SEED)
+left_samples = left_df.sample(n=15, random_state=SEED)
+right_samples = right_df.sample(n=15, random_state=SEED)
+
+lower_samples_df = pd.concat([bal_samples, left_samples, right_samples])
+lower_samples_df.index
+
+# Making random samples for upper values by each class
+bal_df = upper_values_df[upper_values_df.C == 'B']
+left_df = upper_values_df[upper_values_df.C == 'L']
+right_df = upper_values_df[upper_values_df.C == 'R']
+bal_df.describe()
+left_df.describe()
+
+bal_samples = bal_df.sample(n=15, random_state=SEED)
+left_samples = left_df.sample(n=15, random_state=SEED)
+right_samples = right_df.sample(n=15, random_state=SEED)
+
+upper_samples_df = pd.concat([bal_samples, left_samples, right_samples])
+upper_samples_df.index
+
+both_samples_df = pd.concat([lower_samples_df, upper_samples_df])
+
+# In [ ]
+
+def separate_dataframe_from_training_one(original_df, training_df):
+    '''Return a newly-generated dataframe where one's rows don't exist in a training one'''
+    original_set = set(original_df.index)
+    training_set = set(training_df.index)
+    non_training_set = original_set - training_set
+    return original_df.iloc[list(non_training_set)]
+
+# In [ ]
+from sklearn.metrics import accuracy_score
+
+separated_df = separate_dataframe_from_training_one(df, lower_samples_df)
+
+decision_tree_clf = DecisionTreeClassifier()
+list_of_features = ['LW', 'LD', 'RW', 'RD', 'L_calc', 'R_calc']
+X = lower_samples_df.loc[:, list_of_features]
+y = lower_samples_df.loc[:, ['C']]
+decision_tree_clf.fit(X, y)
+X = separated_df.loc[:, list_of_features]
+y = separated_df.loc[:, ['C']]
+accuracy_score(decision_tree_clf.predict(X), y)
+
+# In [ ]
+separated_df = separate_dataframe_from_training_one(df, upper_samples_df)
+
+decision_tree_clf = DecisionTreeClassifier()
+list_of_features = ['LW', 'LD', 'RW', 'RD', 'L_calc', 'R_calc']
+# list_of_features = ['LW', 'LD', 'RW', 'RD']
+X = upper_samples_df.loc[:, list_of_features]
+y = upper_samples_df.loc[:, ['C']]
+decision_tree_clf.fit(X, y)
+X = separated_df.loc[:, list_of_features]
+y = separated_df.loc[:, ['C']]
+accuracy_score(decision_tree_clf.predict(X), y)
+
+# In [ ]
+separated_df = separate_dataframe_from_training_one(df, both_samples_df)
+
+decision_tree_clf = DecisionTreeClassifier()
+list_of_features = ['LW', 'LD', 'RW', 'RD', 'L_calc', 'R_calc']
+# list_of_features = ['LW', 'LD', 'RW', 'RD']
+X = both_samples_df.loc[:, list_of_features]
+y = both_samples_df.loc[:, ['C']]
+decision_tree_clf.fit(X, y)
+X = separated_df.loc[:, list_of_features]
+y = separated_df.loc[:, ['C']]
+accuracy_score(decision_tree_clf.predict(X), y)
+
+# <markdown>
+It looks like that the models still perform good even though I was expecting some overfitting problems.
+
+I believe this is because there's a wide range of the calculated weights for the classes and thus it helped the model
+to determine classes accurately. Like you can see below.
+
+# In [ ]
+upper_samples_df.describe()
+lower_samples_df.describe()
+both_samples_df.describe()
+
+lower_samples_df.R_calc.nunique()
+lower_samples_df.L_calc.nunique()
+both_samples_df.L_calc.nunique()
+both_samples_df.R_calc.nunique()
+
+# <markdown>
+Thus, I shall make a dataframes for calculated weights value.
