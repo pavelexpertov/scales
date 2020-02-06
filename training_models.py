@@ -1,5 +1,6 @@
 import pandas as pd
 import sklearn
+from sklearn import tree
 
 # In [ ]
 df = pd.read_csv('balance-scale.data', header=None, names=['C','LW','LD','RW','RD'])
@@ -319,6 +320,13 @@ upper_samples_df.index
 both_samples_df = pd.concat([lower_samples_df, upper_samples_df])
 
 # In [ ]
+# For dataset description purpose
+lower_samples_df.describe()
+
+# In [ ]
+upper_samples_df.describe()
+
+# In [ ]
 
 def separate_dataframe_from_training_one(original_df, training_df):
     '''Return a newly-generated dataframe where one's rows don't exist in a training one'''
@@ -340,6 +348,10 @@ decision_tree_clf.fit(X, y)
 X = separated_df.loc[:, list_of_features]
 y = separated_df.loc[:, ['C']]
 accuracy_score(decision_tree_clf.predict(X), y)
+
+# In [ ]
+# Storing tree into the dot format for observation
+tree.export_graphviz(decision_tree_clf, out_file='lower_1_tree.dot')
 
 # In [ ]
 separated_df = separate_dataframe_from_training_one(df, upper_samples_df)
@@ -438,6 +450,13 @@ upper_samples_df.index
 both_samples_df = pd.concat([lower_samples_df, upper_samples_df])
 
 # In [ ]
+# For dataset description purpose
+lower_samples_df.describe()
+
+# In [ ]
+upper_samples_df.describe()
+
+# In [ ]
 from sklearn.metrics import accuracy_score
 
 separated_df = separate_dataframe_from_training_one(df, lower_samples_df)
@@ -450,6 +469,10 @@ decision_tree_clf.fit(X, y)
 X = separated_df.loc[:, list_of_features]
 y = separated_df.loc[:, ['C']]
 accuracy_score(decision_tree_clf.predict(X), y)
+
+# In [ ]
+# Storing tree into the dot format for observation
+tree.export_graphviz(decision_tree_clf, out_file='lower_2_tree.dot')
 
 # In [ ]
 separated_df = separate_dataframe_from_training_one(df, upper_samples_df)
@@ -478,6 +501,5 @@ y = separated_df.loc[:, ['C']]
 accuracy_score(decision_tree_clf.predict(X), y)
 
 # <markdown>
-(Talk about that you think the weights have affected the models so that they don't get  IF YOU NEED TO )
-I believe this is because there's a wide range of the calculated weights for the classes and thus it helped the model
-to determine classes accurately. Like you can see below.
+Ok, I can see that the model is under performing for three categories of datasets,
+I will pick the lower tier for comparison since it looks like it
