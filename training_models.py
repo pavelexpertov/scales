@@ -272,15 +272,17 @@ What I would like to see is whether samples that sit on each end of the range (e
 I will make the rations of class samples balanced as to be consistent with the mentioned experiment.
 
 ToDo Overfitting Experiments:
-- [ ] Only upper values of the range (i.e. 5 in weights and distance no matter what in other values as long as conditions are met)
-    - [ ] With original features
-    - [ ] With original features and the calculated weights
-- [ ] Only lower values of the range (i.e. 1 in weights and distance no matter what in other values as long as conditions are met)
-    - [ ] With original features
-    - [ ] With original features and the calculated weights
-- [ ] Upper and lower values of the range (i.e. both of the prior conditions)
-    - [ ] With original features
-    - [ ] With original features and the calculated weights
+- [x] Only upper values of the range (i.e. 5 in weights and distance no matter what in other values as long as conditions are met)
+    - ~[ ] With original features~
+    - [x] With original features and the calculated weights
+- [x] Only lower values of the range (i.e. 1 in weights and distance no matter what in other values as long as conditions are met)
+    - ~[ ] With original features~
+    - [x] With original features and the calculated weights
+- [x] Upper and lower values of the range (i.e. both of the prior conditions)
+    - ~[ ] With original features~
+    - [x] With original features and the calculated weights
+
+Update: just did some look up at the tree algorithm structures in 'looking_at_decision_trees_structre.py' file and its generated pdf documents.
 
 # In [ ]
 upper_values_df = df[(df.LD == 5) | (df.LW == 5) | (df.RD == 5) | (df.RW == 5)]
@@ -503,3 +505,7 @@ accuracy_score(decision_tree_clf.predict(X), y)
 # <markdown>
 Ok, I can see that the model is under performing for three categories of datasets,
 I will pick the lower tier for comparison since it looks like it
+
+Update: just did some look up at the tree algorithm structures in 'looking_at_decision_trees_structre.py' file and its generated pdf documents.
+
+At this point, I will have a look at SGDClassifier algorithm.
