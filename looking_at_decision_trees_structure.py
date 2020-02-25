@@ -211,3 +211,34 @@ To-Do for figuring the inaccuracy of the model:
     - Check how many balanced have failed and passed.
     - Check how many right side classses failed and passed.
     - Check how many left side classses failed and passed.
+
+# In [ ]
+# Make a dataset with a number of left out samples.
+# The numbers are 10, 20, 30 for each class in every dataset.
+SEED = 1111
+
+for samples_num in [10, 20, 30]:
+    b_rand_samples = df[df.C == 'B'].sample(n=samples_num, random_state=SEED)
+    l_rand_samples = df[df.C == 'L'].sample(n=samples_num, random_state=SEED)
+    r_rand_samples = df[df.C == 'R'].sample(n=samples_num, random_state=SEED)
+    indices_list = b_rand_samples.index.to_numpy() + l_rand_samples.index.to_numpy() + r_rand_samples.index.to_numpy()
+    print('Sum of indicies list is', len(indices_list))
+    non_sample_indicies = set(df.index.to_numpy()) - set(indices_list)
+    print('Sum of non_sample_indicies set is', len(non_sample_indicies))
+    non_sample_df = df.iloc[sort(list(non_sample_indicies))]
+    print("Sorted Non sample df head:\n", non_sample_df.head())
+    non_sample_df = df.iloc[list(non_sample_indicies)]
+    print("Non sample df head:\n", non_sample_df.head())
+
+    X = non_sample_df.loc[:, ['LW','LD','RW','RD','L_calc','R_calc']]
+    y = non_sample_df.loc[:, ['C']]
+    clf = DecisionTreeClassifier()
+    scores = cross_val_score(clf, X, y, cv=10)
+    print('Cross validation with {0} samples:'.format(samples_num), 'Mean:', scores.mean(), 'Std:', scores.std())
+    clf = DecisionTreeClassifier().fit(X, y)
+    # Need to write cross scores
+    # Uncomment once the code is ready
+    # tree.export_graphviz(clf, out_file="balanced_with_calc_weights.dot",
+    #                      feature_names=X.columns.to_numpy(),
+    #                      class_names=pd.unique(y.C.to_numpy()),
+    #                      filled=True, rounded=True)
