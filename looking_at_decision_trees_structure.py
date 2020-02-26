@@ -60,10 +60,10 @@ clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier().fit(X, y)
-# tree.export_graphviz(clf, out_file="test2.dot",
-#                      feature_names=X.columns.to_numpy(),
-#                      class_names=pd.unique(y.C.to_numpy()),
-#                      filled=True, rounded=True)
+tree.export_graphviz(clf, out_file="test2.dot",
+                     feature_names=X.columns.to_numpy(),
+                     class_names=pd.unique(y.C.to_numpy()),
+                     filled=True, rounded=True)
 l = [(name, importance) for name, importance in zip(['LW','LD','RW','RD','L_calc','R_calc'], clf.feature_importances_)]
 l.sort(reverse=True, key=lambda i: i[1])
 print('Feature importancen')
@@ -79,7 +79,7 @@ clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier().fit(X, y)
-tree.export_graphviz(clf, out_file="tree_with_only_engineered_features.dot",
+tree.export_graphviz(clf, out_file="test.dot",
                      feature_names=X.columns.to_numpy(),
                      class_names=pd.unique(y.C.to_numpy()),
                      filled=True, rounded=True)
@@ -101,6 +101,10 @@ for name, importance in l:
 # RD 0.0
 
 # <markdown>
+Updated Observations:
+- Ok so for tree with just calcaulted weights, the cross validation showd 97% of the accuracy for the dataset.
+    - It's really bizarre that it's roughly 10 percent more accurate than the tree with the original and engineered features despite having very identical tree structure!!! The only thing I deduce about this is that additional probably mess up accuracy of the tree when you give it to predict when a given tree doesn't use this sample. I suppose??? Need to ask somebody about this.
+
 Observations about the produced pdfs.
 - It looks like that tree with the calculated weights has a lot less horizontal spread compared to one without them.
     - I believe that's reason the decision tree with the weights performs a lot better because it captured more **generality** thus not making the structure bigger.
