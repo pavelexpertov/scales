@@ -19,17 +19,17 @@ y = df.loc[:, ['C']]
 clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=3)
 print('With 3 cross_validation', 'Mean:', scores.mean(), scores.std())
-recording_list.append(['With 3 cross_validation', scores.mean(), scores.std()])
+recording_list.append(['With 3 cross_validation DecisionTreeClassifier', scores.mean(), scores.std()])
 
 clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=5)
 print('With 5 cross_validation', 'Mean:', scores.mean(), scores.std())
-recording_list.append(['With 5 cross_validation', scores.mean(), scores.std()])
+recording_list.append(['With 5 cross_validation DecisionTreeClassifier', scores.mean(), scores.std()])
 
 clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
-recording_list.append(['With 10 cross_validation', scores.mean(), scores.std()])
+recording_list.append(['With 10 cross_validation DecisionTreeClassifier', scores.mean(), scores.std()])
 
 
 # <markdown>
@@ -140,13 +140,13 @@ for classifier, mean, std in sorted_list:
 #     - During testing, I have been wondering about the current dataset and I think I have managed to notice few descrepencies I didn't see before. I will elaborate on this later.
 #
 
-# In [ ]
-#     ______                  __  _                ___
+# <markdown>
+```     ______                  __  _                ___
 #    /  _/ /____  _________ _/ /_(_)___  ____     |__ \
 #    / // __/ _ \/ ___/ __ `/ __/ / __ \/ __ \    __/ /
 #  _/ // /_/  __/ /  / /_/ / /_/ / /_/ / / / /   / __/
 # /___/\__/\___/_/   \__,_/\__/_/\____/_/ /_/   /____/
-#
+```
 
 # <markdown>
 # Purpose of this iteration is to see whether decision trees algorithms will be improved from its worse accuracy performance.
@@ -353,7 +353,7 @@ accuracy_score(decision_tree_clf.predict(X), y)
 
 # In [ ]
 # Storing tree into the dot format for observation
-tree.export_graphviz(decision_tree_clf, out_file='lower_1_tree.dot')
+# tree.export_graphviz(decision_tree_clf, out_file='lower_1_tree.dot')
 
 # In [ ]
 separated_df = separate_dataframe_from_training_one(df, upper_samples_df)
@@ -474,7 +474,7 @@ accuracy_score(decision_tree_clf.predict(X), y)
 
 # In [ ]
 # Storing tree into the dot format for observation
-tree.export_graphviz(decision_tree_clf, out_file='lower_2_tree.dot')
+# tree.export_graphviz(decision_tree_clf, out_file='lower_2_tree.dot')
 
 # In [ ]
 separated_df = separate_dataframe_from_training_one(df, upper_samples_df)

@@ -33,24 +33,15 @@ scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier()
 clf.fit(X, y)
-tree.export_graphviz(clf, out_file="test1.dot",
-                     feature_names=X.columns.to_numpy(),
-                     class_names=pd.unique(y.C.to_numpy()),
-                     filled=True, rounded=True)
+# tree.export_graphviz(clf, out_file="test1.dot",
+#                      feature_names=X.columns.to_numpy(),
+#                      class_names=pd.unique(y.C.to_numpy()),
+#                      filled=True, rounded=True)
 l = [(name, importance) for name, importance in zip(['LW','LD','RW','RD'], clf.feature_importances_)]
 l.sort(reverse=True, key=lambda i: i[1])
 print('Feature importancen')
 for name, importance in l:
     print(name, importance)
-
-# <markdown>
-# With 10 cross_validation Mean: 0.6737839221710189 0.10366816319107584
-# Feature importancen
-# RW 0.26950180674161495
-# LD 0.26188612263854244
-# LW 0.24044564183138226
-# RD 0.22816642878846036
-
 
 # In [ ]
 # Introduce weights
@@ -69,11 +60,30 @@ clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier().fit(X, y)
-tree.export_graphviz(clf, out_file="test2.dot",
+# tree.export_graphviz(clf, out_file="test2.dot",
+#                      feature_names=X.columns.to_numpy(),
+#                      class_names=pd.unique(y.C.to_numpy()),
+#                      filled=True, rounded=True)
+l = [(name, importance) for name, importance in zip(['LW','LD','RW','RD','L_calc','R_calc'], clf.feature_importances_)]
+l.sort(reverse=True, key=lambda i: i[1])
+print('Feature importancen')
+for name, importance in l:
+    print(name, importance)
+
+
+# In [ ]
+# Dataset with only engineered features
+X = df.loc[:, ['L_calc','R_calc']]
+y = df.loc[:, ['C']]
+clf = DecisionTreeClassifier()
+scores = cross_val_score(clf, X, y, cv=10)
+print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
+clf = DecisionTreeClassifier().fit(X, y)
+tree.export_graphviz(clf, out_file="tree_with_only_engineered_features.dot",
                      feature_names=X.columns.to_numpy(),
                      class_names=pd.unique(y.C.to_numpy()),
                      filled=True, rounded=True)
-l = [(name, importance) for name, importance in zip(['LW','LD','RW','RD','L_calc','R_calc'], clf.feature_importances_)]
+l = [(name, importance) for name, importance in zip(['L_calc','R_calc'], clf.feature_importances_)]
 l.sort(reverse=True, key=lambda i: i[1])
 print('Feature importancen')
 for name, importance in l:
@@ -114,10 +124,10 @@ clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier().fit(X, y)
-tree.export_graphviz(clf, out_file="weights.dot",
-                     feature_names=X.columns.to_numpy(),
-                     class_names=pd.unique(y.C.to_numpy()),
-                     filled=True, rounded=True)
+# tree.export_graphviz(clf, out_file="weights.dot",
+#                      feature_names=X.columns.to_numpy(),
+#                      class_names=pd.unique(y.C.to_numpy()),
+#                      filled=True, rounded=True)
 l = [(name, importance) for name, importance in zip(['LW','LD'], clf.feature_importances_)]
 l.sort(reverse=True, key=lambda i: i[1])
 print('Feature importancen')
@@ -133,10 +143,10 @@ clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier().fit(X, y)
-tree.export_graphviz(clf, out_file="distance.dot",
-                     feature_names=X.columns.to_numpy(),
-                     class_names=pd.unique(y.C.to_numpy()),
-                     filled=True, rounded=True)
+# tree.export_graphviz(clf, out_file="distance.dot",
+#                      feature_names=X.columns.to_numpy(),
+#                      class_names=pd.unique(y.C.to_numpy()),
+#                      filled=True, rounded=True)
 l = [(name, importance) for name, importance in zip(['RW','RD'], clf.feature_importances_)]
 l.sort(reverse=True, key=lambda i: i[1])
 print('Feature importancen')
@@ -163,10 +173,10 @@ clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier().fit(X, y)
-tree.export_graphviz(clf, out_file="balanced_without_calc_weights.dot",
-                     feature_names=X.columns.to_numpy(),
-                     class_names=pd.unique(y.C.to_numpy()),
-                     filled=True, rounded=True)
+# tree.export_graphviz(clf, out_file="balanced_without_calc_weights.dot",
+#                      feature_names=X.columns.to_numpy(),
+#                      class_names=pd.unique(y.C.to_numpy()),
+#                      filled=True, rounded=True)
 l = [(name, importance) for name, importance in zip(['LW','LD','RW','RD'], clf.feature_importances_)]
 l.sort(reverse=True, key=lambda i: i[1])
 print('Feature importancen')
@@ -181,10 +191,10 @@ clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier().fit(X, y)
-tree.export_graphviz(clf, out_file="balanced_with_calc_weights.dot",
-                     feature_names=X.columns.to_numpy(),
-                     class_names=pd.unique(y.C.to_numpy()),
-                     filled=True, rounded=True)
+# tree.export_graphviz(clf, out_file="balanced_with_calc_weights.dot",
+#                      feature_names=X.columns.to_numpy(),
+#                      class_names=pd.unique(y.C.to_numpy()),
+#                      filled=True, rounded=True)
 l = [(name, importance) for name, importance in zip(['LW','LD','RW','RD','L_calc','R_calc'], clf.feature_importances_)]
 l.sort(reverse=True, key=lambda i: i[1])
 print('Feature importancen')
@@ -218,15 +228,20 @@ To-Do for figuring the inaccuracy of the model:
 SEED = 1111
 
 for samples_num in [10, 20, 30]:
+    # Getting the general
+    X = non_sample_df.loc[:, ['LW','LD','RW','RD','L_calc','R_calc']]
+    y = non_sample_df.loc[:, ['C']]
+    clf = DecisionTreeClassifier()
+    scores = cross_val_score(clf, X, y, cv=10)
+    print('Cross validation with {0} samples:'.format(samples_num), 'Mean:', scores.mean(), 'Std:', scores.std())
+
     b_rand_samples = df[df.C == 'B'].sample(n=samples_num, random_state=SEED)
     l_rand_samples = df[df.C == 'L'].sample(n=samples_num, random_state=SEED)
     r_rand_samples = df[df.C == 'R'].sample(n=samples_num, random_state=SEED)
-    indices_list = b_rand_samples.index.to_numpy() + l_rand_samples.index.to_numpy() + r_rand_samples.index.to_numpy()
+    indices_list = list(b_rand_samples.index.to_numpy()) + list(l_rand_samples.index.to_numpy()) + list(r_rand_samples.index.to_numpy())
     print('Sum of indicies list is', len(indices_list))
     non_sample_indicies = set(df.index.to_numpy()) - set(indices_list)
     print('Sum of non_sample_indicies set is', len(non_sample_indicies))
-    non_sample_df = df.iloc[sort(list(non_sample_indicies))]
-    print("Sorted Non sample df head:\n", non_sample_df.head())
     non_sample_df = df.iloc[list(non_sample_indicies)]
     print("Non sample df head:\n", non_sample_df.head())
 
@@ -242,3 +257,12 @@ for samples_num in [10, 20, 30]:
     #                      feature_names=X.columns.to_numpy(),
     #                      class_names=pd.unique(y.C.to_numpy()),
     #                      filled=True, rounded=True)
+
+# In [ ]
+# Looking at non sample df to make sure it's fine as it is.
+non_sample_df.describe()
+non_sample_df.index
+len(indices_list)
+b_rand_samples.index
+list(l_rand_samples.index)
+l_rand_samples.index + b_rand_samples.index
