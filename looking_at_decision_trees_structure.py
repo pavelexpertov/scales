@@ -1,4 +1,7 @@
 # In [ ]
+import os
+from statistics import mean
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -56,14 +59,16 @@ y = df.loc[:, ['C']]
 
 # In [ ]
 # Dataset with engineered features
+X = df.loc[:, ['LW','LD','RW','RD','L_calc','R_calc']]
+y = df.loc[:, ['C']]
 clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier().fit(X, y)
-tree.export_graphviz(clf, out_file="test2.dot",
-                     feature_names=X.columns.to_numpy(),
-                     class_names=pd.unique(y.C.to_numpy()),
-                     filled=True, rounded=True)
+# tree.export_graphviz(clf, out_file="test2.dot",
+#                      feature_names=X.columns.to_numpy(),
+#                      class_names=pd.unique(y.C.to_numpy()),
+#                      filled=True, rounded=True)
 l = [(name, importance) for name, importance in zip(['LW','LD','RW','RD','L_calc','R_calc'], clf.feature_importances_)]
 l.sort(reverse=True, key=lambda i: i[1])
 print('Feature importancen')
@@ -79,10 +84,10 @@ clf = DecisionTreeClassifier()
 scores = cross_val_score(clf, X, y, cv=10)
 print('With 10 cross_validation', 'Mean:', scores.mean(), scores.std())
 clf = DecisionTreeClassifier().fit(X, y)
-tree.export_graphviz(clf, out_file="test.dot",
-                     feature_names=X.columns.to_numpy(),
-                     class_names=pd.unique(y.C.to_numpy()),
-                     filled=True, rounded=True)
+# tree.export_graphviz(clf, out_file="test.dot",
+#                      feature_names=X.columns.to_numpy(),
+#                      class_names=pd.unique(y.C.to_numpy()),
+#                      filled=True, rounded=True)
 l = [(name, importance) for name, importance in zip(['L_calc','R_calc'], clf.feature_importances_)]
 l.sort(reverse=True, key=lambda i: i[1])
 print('Feature importancen')
@@ -226,7 +231,8 @@ To-Do for figuring the inaccuracy of the model:
     - Check how many right side classses failed and passed.
     - Check how many left side classses failed and passed.
 
-# In [ ]
+# <markdown>
+# UPDATE: Forget it since the tree can perform very well with the calculated weights alone.
 # Make a dataset with a number of left out samples.
 # The numbers are 10, 20, 30 for each class in every dataset.
 SEED = 1111
@@ -263,10 +269,69 @@ for samples_num in [10, 20, 30]:
     #                      filled=True, rounded=True)
 
 # In [ ]
-# Looking at non sample df to make sure it's fine as it is.
-non_sample_df.describe()
-non_sample_df.index
-len(indices_list)
-b_rand_samples.index
-list(l_rand_samples.index)
-l_rand_samples.index + b_rand_samples.index
+# Perform to cross_val_score for trees with all features.
+from sklearn.model_selection import cross_validate
+X = df.loc[:, ['LW','LD','RW','RD','L_calc','R_calc']]
+y = df.loc[:, ['C']]
+clf = DecisionTreeClassifier()
+validations = cross_validate(clf, X, y, cv=10, return_estimator=True, return_train_score=True)
+# print('With 10 cross_validation with all features', 'Mean:', scores.mean(), scores.std())
+list(validations.keys())
+type(validations['estimator'])
+print(validations['test_score'])
+print(mean(validations['test_score']))
+
+
+
+# In [ ]
+# Printing balanced tree without engineered features
+X = df.loc[:, ['L_calc','R_calc']]
+y = df.loc[:, ['C']]
+clf = DecisionTreeClassifier()
+validations = cross_validate(clf, X, y, cv=10, return_estimator=True, return_train_score=True)
+# print('With 10 cross_validation with only engineered features', 'Mean:', scores.mean(), scores.std())
+list(validations.keys())
+type(validations['estimator'])
+print(validations['test_score'])
+print(mean(validations['test_score']))
+
+# MUST: use sklearn.model_selection.KFold in order to split training and test data
+
+# In [ ]
+from sklearn.model_selection import StratifiedKFold
+from statistics import mean
+
+X = df.loc[:, ['LW','LD','RW','RD','L_calc','R_calc']]
+# X = df.loc[:, ['LW','LD','RW','RD']]
+y = df.loc[:, ['C']]
+# Creating estimators with all the features
+# Format: [{'fitted_estimator', 'mean_score', 'test_split': {'X_test', 'y_test'}, 'train_split': {'X_train', 'y_train'}}]
+sKf = StratifiedKFold(n_splits=10)
+all_features_cv_list = []
+for train_index, test_index in sKf.split(X, y):
+    # print("TRAIN:", train_index, "TEST:", test_index)
+    print("TRAIN:", len(train_index), "TEST:", len(test_index))
+    X_train, X_test = X.to_numpy()[train_index], X.to_numpy()[test_index]
+    y_train, y_test = y.to_numpy()[train_index], y.to_numpy()[test_index]
+    # print(X_train[0:5])
+    # print(y_train[0:5])
+    # print(X_test[0:5])
+    # print(y_test[0:5])
+    clf = DecisionTreeClassifier()
+    clf.fit(X_train, y_train)
+    mean_score = clf.score(X_test, y_test)
+    print('MEAN:', mean_score)
+    d = {
+        'mean_score': mean_score,
+        'fitted_estimator': clf,
+        'test_split': {'X_test': X_test, 'y_test': y_test},
+        'train_split': {'X_train': X_train, 'y_train': y_train}
+    }
+    all_features_cv_list.append(d)
+
+mean([d['mean_score'] for d in all_features_cv_list])
+
+# <markdown>
+It was one hell of a learning experience to realise that for multi-class problems 'StratifiedKFold' is used to split the data.
+
+Otherwise, I ended up believing that my estimators were 'unicorns' due to their high accuracies that averaged 95% of the time.
