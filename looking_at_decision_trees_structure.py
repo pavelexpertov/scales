@@ -47,7 +47,7 @@ for name, importance in l:
     print(name, importance)
 
 # In [ ]
-# Introduce weights
+# Introduce engineered weights
 left_array = df.loc[:, ['LW', 'LD']].to_numpy()
 calculations = [item[0] * item[1] for item in left_array]
 df['L_calc'] = calculations
@@ -215,7 +215,7 @@ for name, importance in l:
 Observations about the balanced distribution of the dataset.
 - For the balanced dataset without the calculated weights:
     - Interestingly, the tree looked overcomplex. It shows that the tree was overfitting again due to nitpickiness of attributes. It performed poorly as expected (i.e. 53% accuracty with std of 12%).
-    - The reason like I said earlier was overfitting and its likely cause I think is overlearning the data to a point of making very intricate rules about each data because I think the data attributes couldn't be split further. I need to do some learning though about the algorithm.
+    - The reason like I said earlier was overfitting and its likely cause I think is overlearning the data to a point of making very intricate rules about each (or handful number of) sample because I think the data attributes couldn't be split further. I need to do some learning though about the algorithm.
 - For the balanced dataset without the calculated weights.
     - It still looks kinda complex but it's not as big or wide as the previous tree. This is because the tree preferred the calculated weights over the original features and thus it managed to generalise the problem (i.e. the accuracy score is 65% with 14% standard deviation).
     - Even though the structure looks kinda balanced on both sides, there's a subtree at the bottom where it goes 4 branches deep. I assume it is because there were some samples left at a point where it seemed it had converged that it was very difficult to equally split the samples based on a best attribute. Thus creating a tiny subtree.
@@ -295,12 +295,11 @@ type(validations['estimator'])
 print(validations['test_score'])
 print(mean(validations['test_score']))
 
-# MUST: use sklearn.model_selection.KFold in order to split training and test data
-
 # In [ ]
 from sklearn.model_selection import StratifiedKFold
 
-X = df.loc[:, ['LW','LD','RW','RD','L_calc','R_calc']]
+ALL_FEATURES_COLUMNS = ['LW','LD','RW','RD','L_calc','R_calc']
+X = df.loc[:, ALL_FEATURES_COLUMNS]
 # X = df.loc[:, ['LW','LD','RW','RD']]
 y = df.loc[:, ['C']]
 # Creating estimators with all the features
@@ -338,7 +337,8 @@ Otherwise, I ended up believing that my estimators were 'unicorns' due to their 
 
 # In [ ]
 # Creating estimators with engineered features only!
-X = df.loc[:, ['L_calc','R_calc']]
+ENGINEERED_FEATURES_COLUMNS = ['L_calc','R_calc']
+X = df.loc[:, ENGINEERED_FEATURES_COLUMNS]
 y = df.loc[:, ['C']]
 # Format: [{'fitted_estimator', 'mean_score', 'test_split': {'X_test', 'y_test'}, 'train_split': {'X_train', 'y_train'}}]
 engineered_features_cv_list = []
@@ -365,17 +365,42 @@ for train_index, test_index in indices_list:
 mean([d['mean_score'] for d in engineered_features_cv_list])
 
 # In [ ]
-# Calculating performance differences between trained classifiers
+# Function for producing dot and pdfs files
+def make_pdf(name, index, clf, columns, uniq_names):
+    TEMPLATE = '{name}_{index}'
+    dot_name = TEMPLATE.format(name=name, index=index) + ".dot"
+    tree.export_graphviz(clf, out_file='produced_pdfs/'+dot_name,
+                         # feature_names=X.columns.to_numpy(),
+                         feature_names=columns,
+                         class_names=uniq_names,
+                         filled=True, rounded=True)
+    os.system('dot -Tps produced_pdfs/{0}.dot -o produced_pdfs/{0}.pdf'.format(TEMPLATE.format(name=name, index=index)))
 
-performance_list = []
+# In [ ]
+# Calculating performance differences between trained classifiers
+UNIQUE_CLASS_NAMES = pd.unique(y.C.to_numpy())
+
+performance_diff_list = []
+engineered_perf_list = []
+all_f_perf_list = []
+counter_list = []
 for index, dict_tuple in enumerate(zip(all_features_cv_list, engineered_features_cv_list)):
     all_f_dict, engineered_f_dict = dict_tuple
     # It's expected for engineered features to perform better thus substracting from its performance score
-    perf_difference = engineered_f_dict['mean_score'] - all_f_dict['mean_score']
-    performance_list.append((index, perf_difference))
+    performance_diff_list.append(engineered_f_dict['mean_score'] - all_f_dict['mean_score'])
+    engineered_perf_list.append(engineered_f_dict['mean_score'])
+    all_f_perf_list.append(all_f_dict['mean_score'])
+    counter_list.append(index)
+    # Creating pdfs!
+    make_pdf('all_f', index, all_f_dict['fitted_estimator'], ALL_FEATURES_COLUMNS, UNIQUE_CLASS_NAMES)
+    make_pdf('engi_f', index, engineered_f_dict['fitted_estimator'], ENGINEERED_FEATURES_COLUMNS, UNIQUE_CLASS_NAMES)
 
-performance_list.sort(reverse=True, key=lambda t: t[1])
+data = pd.DataFrame({
+    'cv_iter': pd.Series(counter_list),
+    'engineered_perf': pd.Series(engineered_perf_list),
+    'all_perf': pd.Series(all_f_perf_list),
+    'perf_diff': pd.Series(performance_diff_list),
+})
 
 # In [ ]
-for cv_index, perf_diff in performance_list:
-    print('Perf:', perf_diff, 'cv_index:', cv_index)
+data
