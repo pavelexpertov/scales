@@ -299,15 +299,15 @@ print(mean(validations['test_score']))
 
 # In [ ]
 from sklearn.model_selection import StratifiedKFold
-from statistics import mean
 
 X = df.loc[:, ['LW','LD','RW','RD','L_calc','R_calc']]
 # X = df.loc[:, ['LW','LD','RW','RD']]
 y = df.loc[:, ['C']]
 # Creating estimators with all the features
-# Format: [{'fitted_estimator', 'mean_score', 'test_split': {'X_test', 'y_test'}, 'train_split': {'X_train', 'y_train'}}]
 sKf = StratifiedKFold(n_splits=10)
+# Format: [{'fitted_estimator', 'mean_score', 'test_split': {'X_test', 'y_test'}, 'train_split': {'X_train', 'y_train'}}]
 all_features_cv_list = []
+indices_list = []
 for train_index, test_index in sKf.split(X, y):
     # print("TRAIN:", train_index, "TEST:", test_index)
     print("TRAIN:", len(train_index), "TEST:", len(test_index))
@@ -328,10 +328,54 @@ for train_index, test_index in sKf.split(X, y):
         'train_split': {'X_train': X_train, 'y_train': y_train}
     }
     all_features_cv_list.append(d)
-
+    indices_list.append((train_index, test_index))
 mean([d['mean_score'] for d in all_features_cv_list])
 
 # <markdown>
 It was one hell of a learning experience to realise that for multi-class problems 'StratifiedKFold' is used to split the data.
 
 Otherwise, I ended up believing that my estimators were 'unicorns' due to their high accuracies that averaged 95% of the time.
+
+# In [ ]
+# Creating estimators with engineered features only!
+X = df.loc[:, ['L_calc','R_calc']]
+y = df.loc[:, ['C']]
+# Format: [{'fitted_estimator', 'mean_score', 'test_split': {'X_test', 'y_test'}, 'train_split': {'X_train', 'y_train'}}]
+engineered_features_cv_list = []
+for train_index, test_index in indices_list:
+    # print("TRAIN:", train_index, "TEST:", test_index)
+    print("TRAIN:", len(train_index), "TEST:", len(test_index))
+    X_train, X_test = X.to_numpy()[train_index], X.to_numpy()[test_index]
+    y_train, y_test = y.to_numpy()[train_index], y.to_numpy()[test_index]
+    # print(X_train[0:5])
+    # print(y_train[0:5])
+    # print(X_test[0:5])
+    # print(y_test[0:5])
+    clf = DecisionTreeClassifier()
+    clf.fit(X_train, y_train)
+    mean_score = clf.score(X_test, y_test)
+    print('MEAN:', mean_score)
+    d = {
+        'mean_score': mean_score,
+        'fitted_estimator': clf,
+        'test_split': {'X_test': X_test, 'y_test': y_test},
+        'train_split': {'X_train': X_train, 'y_train': y_train}
+    }
+    engineered_features_cv_list.append(d)
+mean([d['mean_score'] for d in engineered_features_cv_list])
+
+# In [ ]
+# Calculating performance differences between trained classifiers
+
+performance_list = []
+for index, dict_tuple in enumerate(zip(all_features_cv_list, engineered_features_cv_list)):
+    all_f_dict, engineered_f_dict = dict_tuple
+    # It's expected for engineered features to perform better thus substracting from its performance score
+    perf_difference = engineered_f_dict['mean_score'] - all_f_dict['mean_score']
+    performance_list.append((index, perf_difference))
+
+performance_list.sort(reverse=True, key=lambda t: t[1])
+
+# In [ ]
+for cv_index, perf_diff in performance_list:
+    print('Perf:', perf_diff, 'cv_index:', cv_index)
