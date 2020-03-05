@@ -1,5 +1,6 @@
 # In [ ]
 import os
+import pickle
 from statistics import mean
 
 import numpy as np
@@ -300,7 +301,6 @@ from sklearn.model_selection import StratifiedKFold
 
 ALL_FEATURES_COLUMNS = ['LW','LD','RW','RD','L_calc','R_calc']
 X = df.loc[:, ALL_FEATURES_COLUMNS]
-# X = df.loc[:, ['LW','LD','RW','RD']]
 y = df.loc[:, ['C']]
 # Creating estimators with all the features
 sKf = StratifiedKFold(n_splits=10)
@@ -330,12 +330,10 @@ for train_index, test_index in sKf.split(X, y):
     indices_list.append((train_index, test_index))
 mean([d['mean_score'] for d in all_features_cv_list])
 
-# <markdown>
-It was one hell of a learning experience to realise that for multi-class problems 'StratifiedKFold' is used to split the data.
+# It was one hell of a learning experience to realise that for multi-class problems 'StratifiedKFold' is used to split the data.
 
-Otherwise, I ended up believing that my estimators were 'unicorns' due to their high accuracies that averaged 95% of the time.
+# Otherwise, I ended up believing that my estimators were 'unicorns' due to their high accuracies that averaged 95% of the time.
 
-# In [ ]
 # Creating estimators with engineered features only!
 ENGINEERED_FEATURES_COLUMNS = ['L_calc','R_calc']
 X = df.loc[:, ENGINEERED_FEATURES_COLUMNS]
@@ -364,7 +362,6 @@ for train_index, test_index in indices_list:
     engineered_features_cv_list.append(d)
 mean([d['mean_score'] for d in engineered_features_cv_list])
 
-# In [ ]
 # Function for producing dot and pdfs files
 def make_pdf(name, index, clf, columns, uniq_names):
     TEMPLATE = '{name}_{index}'
@@ -376,7 +373,6 @@ def make_pdf(name, index, clf, columns, uniq_names):
                          filled=True, rounded=True)
     os.system('dot -Tps produced_pdfs/{0}.dot -o produced_pdfs/{0}.pdf'.format(TEMPLATE.format(name=name, index=index)))
 
-# In [ ]
 # Calculating performance differences between trained classifiers
 UNIQUE_CLASS_NAMES = pd.unique(y.C.to_numpy())
 
@@ -392,8 +388,10 @@ for index, dict_tuple in enumerate(zip(all_features_cv_list, engineered_features
     all_f_perf_list.append(all_f_dict['mean_score'])
     counter_list.append(index)
     # Creating pdfs!
-    make_pdf('all_f', index, all_f_dict['fitted_estimator'], ALL_FEATURES_COLUMNS, UNIQUE_CLASS_NAMES)
-    make_pdf('engi_f', index, engineered_f_dict['fitted_estimator'], ENGINEERED_FEATURES_COLUMNS, UNIQUE_CLASS_NAMES)
+    # make_pdf('all_f', index, all_f_dict['fitted_estimator'], ALL_FEATURES_COLUMNS, UNIQUE_CLASS_NAMES)
+    # make_pdf('engi_f', index, engineered_f_dict['fitted_estimator'], ENGINEERED_FEATURES_COLUMNS, UNIQUE_CLASS_NAMES)
+
+# os.system('rm produced_pdfs/*.dot')
 
 data = pd.DataFrame({
     'cv_iter': pd.Series(counter_list),
@@ -402,5 +400,41 @@ data = pd.DataFrame({
     'perf_diff': pd.Series(performance_diff_list),
 })
 
-# In [ ]
 data
+
+'''
+# Results at the time of generating the files.
+# If you run this notebook/file the results may vary slightly.
+cv_iter	engineered_perf	all_perf	perf_diff
+0	0	0.936508	0.888889	0.047619
+1	1	1.000000	0.968254	0.031746
+2	2	0.968254	0.936508	0.031746
+3	3	1.000000	1.000000	0.000000
+4	4	1.000000	0.873016	0.126984
+5	5	0.983871	0.758065	0.225806
+6	6	1.000000	1.000000	0.000000
+7	7	0.983871	0.693548	0.290323
+8	8	0.967742	0.870968	0.096774
+9	9	0.935484	0.854839	0.080645
+'''
+
+# In [ ]
+def save_stuff(all_features_cv_list, engineered_features_cv_list, data):
+    # (Hopefully) saving the current state of the classifiers and test and train indicies to a file
+    with open('saves/all_features_cv_list.pickle', 'wb') as file_obj:
+        pickle.dump(all_features_cv_list, file_obj)
+    with open('saves/engineered_features_cv_list.pickle', 'wb') as file_obj:
+        pickle.dump(engineered_features_cv_list, file_obj)
+    data.to_pickle('saves/data_dataframe.pickle')
+
+def get_stuff():
+    with open('saves/all_features_cv_list.pickle', 'rb') as file_obj:
+        resurectted = pickle.load(file_obj)
+    with open('saves/engineered_features_cv_list.pickle', 'rb') as file_obj:
+        resurectted_2 = pickle.load(file_obj)
+    resurect_data = pd.read_pickle('saves/data_dataframe.pickle')
+    return resurectted, resurectted_2, resurect_data
+
+# In [ ]
+# Getting stuff back from saves files
+all_features_cv_list, engineered_features_cv_list, data = get_stuff()
