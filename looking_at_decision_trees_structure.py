@@ -438,3 +438,37 @@ def get_stuff():
 # In [ ]
 # Getting stuff back from saves files
 all_features_cv_list, engineered_features_cv_list, data = get_stuff()
+data
+
+# In [ ]
+from collections import Counter
+def display_info(index, all_f_dict, engineered_f_dict):
+    '''Function to display informative values about a CV iteration.
+    TO-DO:
+    - Displaying a list of failed samples for each classifier
+    '''
+    print('Iteration_CV:', index, 'All_features_score:', all_f_dict['mean_score'], 'Engineered_features_score': engineered_f_dict['mean_score'], 'Perf_diff': engineered_f_dict['mean_score'] - all_f_dict['mean_score'])
+
+    # Since the test and training data splits are the same for engineered and features
+    print('Training_data_total', len(all_f_dict['train_split']['X_train']), 'Testing_data_total', len(all_f_dict['train_split']['X_test']))
+    # But it won't escape checking ;)
+    assert all(all_f_dict['train_split']['X_train'] == engineered_f_dict['train_split']['X_train'])
+    assert all(all_f_dict['train_split']['X_test'] == engineered_f_dict['train_split']['X_test'])
+    assert all(all_f_dict['train_split']['y_train'] == engineered_f_dict['train_split']['y_train'])
+    assert all(all_f_dict['train_split']['y_test'] == engineered_f_dict['train_split']['y_test'])
+
+    # Printing percentages of classes
+    train_classes_counter = Counter(all_f_dict['train_split']['y_train'])
+    test_classes_counter = Counter(all_f_dict['train_split']['y_test'])
+    total_train_samples = len(all_f_dict['train_split']['y_train'])
+    total_test_samples = len(all_f_dict['train_split']['y_test'])
+    train_sample_percentages = [(class, (count/total_train_samples)*100) for class, count in train_classes_counter.most_common()]
+    test_sample_percentages = [(class, (count/total_test_samples)*100) for class, count in test_classes_counter.most_common()]
+    print('train_samples_classes_percentages:', train_sample_percentages)
+    print('test_samples_classes_percentages:', test_sample_percentages)
+
+    # Print successful and failed samples for each classififer
+
+
+# In [ ]
+# Extracting the worst case:
