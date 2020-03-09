@@ -467,7 +467,21 @@ def display_info(index, all_f_dict, engineered_f_dict):
     print('train_samples_classes_percentages:', train_sample_percentages)
     print('test_samples_classes_percentages:', test_sample_percentages)
 
-    # Print successful and failed samples for each classififer
+    # Print successful and failed samples for all features classifier
+    test_split_X = all_f_dict['train_split']['X_test']
+    test_split_y = all_f_dict['train_split']['y_test']
+    all_f_clf = all_f_dict['fitted_estimator']
+    predicted_classes = all_f_clf.predict(test_split_y)
+    all_f_df = pd.Dataframe({
+        'sample': pd.Series(test_split_X),
+        'returned_class': pd.Series(predicted_classes),
+        'expected_class': pd.Series(test_split_y)
+    })
+    matches = [row['returned_class'] == row['expected_class'] for index, row in all_f_df.iterrows()]
+    all_f_df['matched'] = pd.Series(matches)
+    all_f_df.groupby(['expected_class', 'matched']).count()
+
+
 
 
 # In [ ]
