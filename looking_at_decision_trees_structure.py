@@ -447,42 +447,59 @@ def display_info(index, all_f_dict, engineered_f_dict):
     TO-DO:
     - Displaying a list of failed samples for each classifier
     '''
-    print('Iteration_CV:', index, 'All_features_score:', all_f_dict['mean_score'], 'Engineered_features_score': engineered_f_dict['mean_score'], 'Perf_diff': engineered_f_dict['mean_score'] - all_f_dict['mean_score'])
+    print('Iteration_CV:', index, 'All_features_score:', all_f_dict['mean_score'], 'Engineered_features_score:', engineered_f_dict['mean_score'], 'Perf_diff:', engineered_f_dict['mean_score'] - all_f_dict['mean_score'])
 
     # Since the test and training data splits are the same for engineered and features
-    print('Training_data_total', len(all_f_dict['train_split']['X_train']), 'Testing_data_total', len(all_f_dict['train_split']['X_test']))
+    print('Training_data_total', len(all_f_dict['train_split']['X_train']), 'Testing_data_total', len(all_f_dict['test_split']['X_test']))
     # But it won't escape checking ;)
-    assert all(all_f_dict['train_split']['X_train'] == engineered_f_dict['train_split']['X_train'])
-    assert all(all_f_dict['train_split']['X_test'] == engineered_f_dict['train_split']['X_test'])
-    assert all(all_f_dict['train_split']['y_train'] == engineered_f_dict['train_split']['y_train'])
-    assert all(all_f_dict['train_split']['y_test'] == engineered_f_dict['train_split']['y_test'])
+    # 4, 5 indicies for the all features since that's the calcualted weights.
+    print([[sample[4], sample[5]] for sample in all_f_dict['train_split']['X_train']] == engineered_f_dict['train_split']['X_train'])
+    all_f_samples = [[sample[4], sample[5]] for sample in all_f_dict['train_split']['X_train']]
+    assert all([all(l) for l in all_f_samples == engineered_f_dict['train_split']['X_train']])
+    assert all([all(l) for l in all_f_dict['train_split']['y_train'] == engineered_f_dict['train_split']['y_train']])
+    all_f_samples = [[sample[4], sample[5]] for sample in all_f_dict['test_split']['X_test']]
+    assert all([all(l) for l in all_f_samples == engineered_f_dict['test_split']['X_test']])
+    assert all([all(l) for l in all_f_dict['test_split']['y_test'] == engineered_f_dict['test_split']['y_test']])
 
     # Printing percentages of classes
-    train_classes_counter = Counter(all_f_dict['train_split']['y_train'])
-    test_classes_counter = Counter(all_f_dict['train_split']['y_test'])
+    # print('hello there', [i[0] for i in all_f_dict['train_split']['y_train']])
+    train_classes_counter = Counter([i[0] for i in all_f_dict['train_split']['y_train']])
+    test_classes_counter = Counter([i[0] for i in all_f_dict['test_split']['y_test']])
     total_train_samples = len(all_f_dict['train_split']['y_train'])
-    total_test_samples = len(all_f_dict['train_split']['y_test'])
-    train_sample_percentages = [(class, (count/total_train_samples)*100) for class, count in train_classes_counter.most_common()]
-    test_sample_percentages = [(class, (count/total_test_samples)*100) for class, count in test_classes_counter.most_common()]
+    total_test_samples = len(all_f_dict['test_split']['y_test'])
+    train_sample_percentages = [(sample_class, (count/total_train_samples)*100) for sample_class, count in train_classes_counter.most_common()]
+    test_sample_percentages = [(sample_class, (count/total_test_samples)*100) for sample_class, count in test_classes_counter.most_common()]
     print('train_samples_classes_percentages:', train_sample_percentages)
     print('test_samples_classes_percentages:', test_sample_percentages)
 
     # Print successful and failed samples for all features classifier
-    test_split_X = all_f_dict['train_split']['X_test']
-    test_split_y = all_f_dict['train_split']['y_test']
+    test_split_X = all_f_dict['test_split']['X_test']
+    test_split_y = all_f_dict['test_split']['y_test']
     all_f_clf = all_f_dict['fitted_estimator']
-    predicted_classes = all_f_clf.predict(test_split_y)
-    all_f_df = pd.Dataframe({
-        'sample': pd.Series(test_split_X),
+    predicted_classes = all_f_clf.predict(test_split_X)
+    print('predicted_classes:', predicted_classes)
+
+    # Getting separate attributes for each sample for all features
+    features_dict = {}
+    for index, feature in enumerate(ALL_FEATURES_COLUMNS):
+        features_dict[feature] = [a[index] for a in test_split_X]
+
+    all_f_dict = {
         'returned_class': pd.Series(predicted_classes),
-        'expected_class': pd.Series(test_split_y)
-    })
+        'expected_class': pd.Series([i[0] for i in test_split_y])
+    }
+    all_f_dict = {**all_f_dict, **features_dict}
+    all_f_df = pd.DataFrame(all_f_dict)
     matches = [row['returned_class'] == row['expected_class'] for index, row in all_f_df.iterrows()]
     all_f_df['matched'] = pd.Series(matches)
-    all_f_df.groupby(['expected_class', 'matched']).count()
-
-
+    print(all_f_df.groupby(['expected_class', 'matched']).count())
 
 
 # In [ ]
-# Extracting the worst case:
+display_info(9, all_features_cv_list[9], engineered_features_cv_list[9])
+
+ad = all_features_cv_list[9]
+ed = engineered_features_cv_list[9]
+
+print('ad:', ad['train_split']['X_train'][:25])
+print('ed:', ed['train_split']['X_train'][:25])
