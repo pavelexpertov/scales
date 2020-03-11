@@ -484,22 +484,38 @@ def display_info(index, all_f_dict, engineered_f_dict):
     for index, feature in enumerate(ALL_FEATURES_COLUMNS):
         features_dict[feature] = [a[index] for a in test_split_X]
 
-    all_f_dict = {
+    all_f_for_df_dict = {
         'returned_class': pd.Series(predicted_classes),
         'expected_class': pd.Series([i[0] for i in test_split_y])
     }
-    all_f_dict = {**all_f_dict, **features_dict}
-    all_f_df = pd.DataFrame(all_f_dict)
+    all_f_for_df_dict = {**all_f_for_df_dict, **features_dict}
+    all_f_df = pd.DataFrame(all_f_for_df_dict)
     matches = [row['returned_class'] == row['expected_class'] for index, row in all_f_df.iterrows()]
     all_f_df['matched'] = pd.Series(matches)
     print(all_f_df.groupby(['expected_class', 'matched']).count())
 
+    # Print successful and failed samples for engineered features classifier
+    test_split_X = engineered_f_dict['test_split']['X_test']
+    test_split_y = engineered_f_dict['test_split']['y_test']
+    engineered_f_clf = engineered_f_dict['fitted_estimator']
+    predicted_classes = engineered_f_clf.predict(test_split_X)
+    print('predicted_classes:', predicted_classes)
+
+    # Getting separate attributes for each sample for all features
+    features_dict = {}
+    for index, feature in enumerate(ENGINEERED_FEATURES_COLUMNS):
+        features_dict[feature] = [a[index] for a in test_split_X]
+
+    engineered_f_for_df_dict = {
+        'returned_class': pd.Series(predicted_classes),
+        'expected_class': pd.Series([i[0] for i in test_split_y])
+    }
+    engineered_f_for_df_dict = {**engineered_f_for_df_dict, **features_dict}
+    engineered_f_df = pd.DataFrame(engineered_f_for_df_dict)
+    matches = [row['returned_class'] == row['expected_class'] for index, row in engineered_f_df.iterrows()]
+    engineered_f_df['matched'] = pd.Series(matches)
+    print(engineered_f_df.groupby(['expected_class', 'matched']).count())
+
 
 # In [ ]
 display_info(9, all_features_cv_list[9], engineered_features_cv_list[9])
-
-ad = all_features_cv_list[9]
-ed = engineered_features_cv_list[9]
-
-print('ad:', ad['train_split']['X_train'][:25])
-print('ed:', ed['train_split']['X_train'][:25])
