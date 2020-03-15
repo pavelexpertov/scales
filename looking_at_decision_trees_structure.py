@@ -519,3 +519,28 @@ def display_info(index, all_f_dict, engineered_f_dict):
 
 # In [ ]
 display_info(9, all_features_cv_list[9], engineered_features_cv_list[9])
+
+# In [ ]
+# Trees that have zero difference in performance
+display_info(3, all_features_cv_list[3], engineered_features_cv_list[3])
+display_info(6, all_features_cv_list[6], engineered_features_cv_list[6])
+
+# In [ ]
+# Trees with roughly 10 performance difference on average
+# 4, 8, 9
+display_info(4, all_features_cv_list[4], engineered_features_cv_list[4])
+display_info(8, all_features_cv_list[8], engineered_features_cv_list[8])
+display_info(9, all_features_cv_list[9], engineered_features_cv_list[9])
+
+# In [ ]
+# Trees with roughly 3 to 4 percent different in performance
+# 0, 1, 2
+display_info(0, all_features_cv_list[0], engineered_features_cv_list[0])
+display_info(1, all_features_cv_list[1], engineered_features_cv_list[1])
+display_info(2, all_features_cv_list[2], engineered_features_cv_list[2])
+
+# In [ ]
+# Trees with bigger performance differences.
+# 5, 7
+display_info(5, all_features_cv_list[5], engineered_features_cv_list[5])
+display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
