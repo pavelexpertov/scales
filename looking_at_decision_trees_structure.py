@@ -447,13 +447,15 @@ def display_info(index, all_f_dict, engineered_f_dict):
     TO-DO:
     - Displaying a list of failed samples for each classifier
     '''
-    print('Iteration_CV:', index, 'All_features_score:', all_f_dict['mean_score'], 'Engineered_features_score:', engineered_f_dict['mean_score'], 'Perf_diff:', engineered_f_dict['mean_score'] - all_f_dict['mean_score'])
+    print('Iteration_CV:', index)
+    print('All_features_score:', all_f_dict['mean_score'])
+    print('Engineered_features_score:', engineered_f_dict['mean_score'])
+    print('Perf_diff:', engineered_f_dict['mean_score'] - all_f_dict['mean_score'])
 
     # Since the test and training data splits are the same for engineered and features
     print('Training_data_total', len(all_f_dict['train_split']['X_train']), 'Testing_data_total', len(all_f_dict['test_split']['X_test']))
     # But it won't escape checking ;)
     # 4, 5 indicies for the all features since that's the calcualted weights.
-    print([[sample[4], sample[5]] for sample in all_f_dict['train_split']['X_train']] == engineered_f_dict['train_split']['X_train'])
     all_f_samples = [[sample[4], sample[5]] for sample in all_f_dict['train_split']['X_train']]
     assert all([all(l) for l in all_f_samples == engineered_f_dict['train_split']['X_train']])
     assert all([all(l) for l in all_f_dict['train_split']['y_train'] == engineered_f_dict['train_split']['y_train']])
@@ -462,13 +464,12 @@ def display_info(index, all_f_dict, engineered_f_dict):
     assert all([all(l) for l in all_f_dict['test_split']['y_test'] == engineered_f_dict['test_split']['y_test']])
 
     # Printing percentages of classes
-    # print('hello there', [i[0] for i in all_f_dict['train_split']['y_train']])
     train_classes_counter = Counter([i[0] for i in all_f_dict['train_split']['y_train']])
     test_classes_counter = Counter([i[0] for i in all_f_dict['test_split']['y_test']])
     total_train_samples = len(all_f_dict['train_split']['y_train'])
     total_test_samples = len(all_f_dict['test_split']['y_test'])
-    train_sample_percentages = [(sample_class, (count/total_train_samples)*100) for sample_class, count in train_classes_counter.most_common()]
-    test_sample_percentages = [(sample_class, (count/total_test_samples)*100) for sample_class, count in test_classes_counter.most_common()]
+    train_sample_percentages = [(sample_class, round((count/total_train_samples)*100, 2)) for sample_class, count in train_classes_counter.most_common()]
+    test_sample_percentages = [(sample_class, round((count/total_test_samples)*100, 2)) for sample_class, count in test_classes_counter.most_common()]
     print('train_samples_classes_percentages:', train_sample_percentages)
     print('test_samples_classes_percentages:', test_sample_percentages)
 
@@ -477,7 +478,7 @@ def display_info(index, all_f_dict, engineered_f_dict):
     test_split_y = all_f_dict['test_split']['y_test']
     all_f_clf = all_f_dict['fitted_estimator']
     predicted_classes = all_f_clf.predict(test_split_X)
-    print('predicted_classes:', predicted_classes)
+    # print('all_f_predicted_classes:', predicted_classes)
 
     # Getting separate attributes for each sample for all features
     features_dict = {}
@@ -499,7 +500,7 @@ def display_info(index, all_f_dict, engineered_f_dict):
     test_split_y = engineered_f_dict['test_split']['y_test']
     engineered_f_clf = engineered_f_dict['fitted_estimator']
     predicted_classes = engineered_f_clf.predict(test_split_X)
-    print('predicted_classes:', predicted_classes)
+    # print('engineered_predicted_classes:', predicted_classes)
 
     # Getting separate attributes for each sample for all features
     features_dict = {}
@@ -518,12 +519,19 @@ def display_info(index, all_f_dict, engineered_f_dict):
 
 
 # In [ ]
-display_info(9, all_features_cv_list[9], engineered_features_cv_list[9])
-
-# In [ ]
 # Trees that have zero difference in performance
 display_info(3, all_features_cv_list[3], engineered_features_cv_list[3])
 display_info(6, all_features_cv_list[6], engineered_features_cv_list[6])
+
+# <markdown>
+Ok, so this is not suprising since the trees (almost) closely identically to one another so there's zero difference in performance.
+
+3 and 3 iterations all_f: the tree structures look very identical. Except for one leftist node. One tree has used L_calc whereas the other used R_calc. I believe this is because at that node, the attributes would have the same Gini value and thus it would've randomly selected the attribute.
+Despite that, leaves are the same between trees.
+
+6 and 6 iterations engineered_f:
+Trees look very idnetical.
+
 
 # In [ ]
 # Trees with roughly 10 performance difference on average
@@ -531,6 +539,22 @@ display_info(6, all_features_cv_list[6], engineered_features_cv_list[6])
 display_info(4, all_features_cv_list[4], engineered_features_cv_list[4])
 display_info(8, all_features_cv_list[8], engineered_features_cv_list[8])
 display_info(9, all_features_cv_list[9], engineered_features_cv_list[9])
+
+# <markdown>
+Iteration 4:
+    - It looks like the trees look very identical, but the all_f tree had used an original attribute right in the centre of the tree. Possibly because of it the all_f tree under performed. However, need to implement the diagnostic function to see where the path travel.
+
+Iteration 8:
+    - Trees look almost identical, but again, an original feature introduced an additional depth to the all_f tree compared to engineered_f one.
+
+Iteration 9:
+    - Trees look identical, but all_f's three nodes use original features to split the samples. However, it does look like leaves are the same between the trees.
+
+In conclusion for the specified iterations, the trees almost look alike, but the original features either alter a structure of the tree a bit or a node, which would usually use an engineered node.
+
+My assumption is that the reason the original features are used is because at that particular node had either the same amount of samples that the splits were so similar that the attribute was chosen at random *or* the split was a bit better than the engineeered ones.
+
+And that's why there were a handful of mismatches for each class in iterations since a particular set of samples would have gone a path that wasn't generalised/trained on it properly.
 
 # In [ ]
 # Trees with roughly 3 to 4 percent different in performance
