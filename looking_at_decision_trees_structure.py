@@ -493,6 +493,7 @@ def display_info(index, all_f_dict, engineered_f_dict):
     all_f_df = pd.DataFrame(all_f_for_df_dict)
     matches = [row['returned_class'] == row['expected_class'] for index, row in all_f_df.iterrows()]
     all_f_df['matched'] = pd.Series(matches)
+    print('All Features table')
     print(all_f_df.groupby(['expected_class', 'matched']).count())
 
     # Print successful and failed samples for engineered features classifier
@@ -515,6 +516,7 @@ def display_info(index, all_f_dict, engineered_f_dict):
     engineered_f_df = pd.DataFrame(engineered_f_for_df_dict)
     matches = [row['returned_class'] == row['expected_class'] for index, row in engineered_f_df.iterrows()]
     engineered_f_df['matched'] = pd.Series(matches)
+    print('Engineered Features table')
     print(engineered_f_df.groupby(['expected_class', 'matched']).count())
 
 
@@ -568,3 +570,10 @@ display_info(2, all_features_cv_list[2], engineered_features_cv_list[2])
 # 5, 7
 display_info(5, all_features_cv_list[5], engineered_features_cv_list[5])
 display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
+
+# <markdown>
+# Trees with the worst performance
+Iteration 5
+    - The trees look very familiar but there's one path that stands out. In the all features tree, on a second node (L_calc <= 13.5), a LD feature was selected and as a result the structure of the path looks different to the path in the engineered tree: the feature gave itself an extra two depths and it had some leaves along the way whereas the engineered tree had a balanced subtree. 
+        - Ok this is weird: for the right most node (in all features tree), the gini confidence is the same as that of the engineered branch. I think the value for the gini confidence was still different because the values are rounded and therefore the values would be very close to between each other but still different.
+Iteration 5
