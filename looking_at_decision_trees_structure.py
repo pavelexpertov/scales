@@ -519,6 +519,17 @@ def display_info(index, all_f_dict, engineered_f_dict):
     print('Engineered Features table')
     print(engineered_f_df.groupby(['expected_class', 'matched']).count())
 
+    # Create a dataframe where samples from all_f_df failed as well as succeed in the engineered_f_df
+    row_index_list = []
+    for index, tuples in enumerate(zip(all_f_df.itertuples(), engineered_f_df.itertuples())):
+        all_f_row, engineered_f_row = tuples[0], tuples[1]
+        if not all_f_row['matched'] and engineered_f_row['matched']:
+            row_index_list.append(index)
+
+    valid_samples_df = all_f_df.iloc[row_index_list]
+    valid_samples_df.count()
+
+    return all_f_df, engineered_f_df
 
 # In [ ]
 # Trees that have zero difference in performance
@@ -574,6 +585,21 @@ display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
 # <markdown>
 # Trees with the worst performance
 Iteration 5
-    - The trees look very familiar but there's one path that stands out. In the all features tree, on a second node (L_calc <= 13.5), a LD feature was selected and as a result the structure of the path looks different to the path in the engineered tree: the feature gave itself an extra two depths and it had some leaves along the way whereas the engineered tree had a balanced subtree. 
+    - The trees look very familiar but there's one path that stands out. In the all features tree, on a second node (L_calc <= 13.5), a LD feature was selected and as a result the structure of the path looks different to the path in the engineered tree: the feature gave itself an extra two depths and it had some leaves along the way whereas the engineered tree had a balanced subtree.
         - Ok this is weird: for the right most node (in all features tree), the gini confidence is the same as that of the engineered branch. I think the value for the gini confidence was still different because the values are rounded and therefore the values would be very close to between each other but still different.
-Iteration 5
+Iteration 7
+    - What's interesting is that half of the left side classes samples fail completely in comparison to the right side (even though the balanced class has 50/50 success/failire rate as well).
+    - The trees again look identiacal, but the all_f tree has a node that disticly altered the shape of a subtree, especially for the node under the second node on hte right side (i.e. R_calc <= 13.5). The subtree uses an original attribute to split the samples and it introduces an additional node that would seperate an a subtree strucutre very similar to the engineered_f subtree under the same node I mentioned.
+    - There's another node that uses the the original attribute but the leaves under it seem the same between the trees.
+
+In conclusion, it seems original attributes, which have been selected as the best sample splitting attribute according to Gini value, affect the structure of the trees in such a way that tested sample fail the most. Therefore, I need to confirm that these attributes affect the classification prediciton of these samples by looking at the path that attributes take.
+
+# In [ ]
+df1, df2 = display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
+
+# In [ ]
+# Just looking at the data
+df1.head()
+df2.head()
+df1.tail()
+df2.tail()
