@@ -2,6 +2,7 @@
 import os
 import pickle
 from statistics import mean
+from icecream import ic
 
 import numpy as np
 import pandas as pd
@@ -523,13 +524,19 @@ def display_info(index, all_f_dict, engineered_f_dict):
     row_index_list = []
     for index, tuples in enumerate(zip(all_f_df.itertuples(), engineered_f_df.itertuples())):
         all_f_row, engineered_f_row = tuples[0], tuples[1]
-        if not all_f_row['matched'] and engineered_f_row['matched']:
+        if not all_f_row.matched and engineered_f_row.matched:
             row_index_list.append(index)
 
     valid_samples_df = all_f_df.iloc[row_index_list]
-    valid_samples_df.count()
+    print("Counts")
+    print(valid_samples_df.count())
+    print(valid_samples_df)
+    return valid_samples_df
 
-    return all_f_df, engineered_f_df
+
+# In [ ]
+# Trees
+display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
 
 # In [ ]
 # Trees that have zero difference in performance
