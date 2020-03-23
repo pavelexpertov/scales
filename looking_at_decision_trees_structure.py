@@ -533,6 +533,37 @@ def display_info(index, all_f_dict, engineered_f_dict):
     print(valid_samples_df)
     return valid_samples_df
 
+def list_decision_travel_nodes(all_f_dict, LW, LD, RW, RD, L_calc, R_calc):
+    '''List nodes where a sample traversed through whilst predicted a sample'''
+    # Print successful and failed samples for all features classifier
+    classifier = all_f_dict['fitted_estimator']
+    X_test = np.ndarray([[LW, LD, RW, RD, L_calc, R_calc]])
+
+    node_indicator = classifier.decision_path(X_test)
+    leave_id = classifier.apply(X_test)
+
+    sample_id = 0 # Since I only provided one sample, the sample id should be 0 by default
+    node_index = node_indicator.indicies[node_indicator.indptr[sample_id],
+                                         node_indicator.indptr[sample_id + 1]]
+
+    print("Decision path for the provided paramters:")
+    for node_id in node_index:
+        if leave_id[sample_id] == node_id:
+            continue
+
+        if (X_test[sample_id, feature[node_id]] <= threshold[node_id]):
+            threshold_sign = "<="
+        else:
+            threshold_sign = ">"
+
+        print("decision id node %s : (X_test[%s, %s] (= %s) %s %s)"
+              % (node_id,
+                 sample_id,
+                 feature[node_id],
+                 X_test[sample_id, feature[node_id]],
+                 threshold_sign,
+                 threshold[node_id]))
+
 
 # In [ ]
 # Trees
@@ -601,12 +632,9 @@ Iteration 7
 
 In conclusion, it seems original attributes, which have been selected as the best sample splitting attribute according to Gini value, affect the structure of the trees in such a way that tested sample fail the most. Therefore, I need to confirm that these attributes affect the classification prediciton of these samples by looking at the path that attributes take.
 
-# In [ ]
-df1, df2 = display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
 
 # In [ ]
-# Just looking at the data
-df1.head()
-df2.head()
-df1.tail()
-df2.tail()
+Looking at iteration 7
+
+display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
+list_decision_travel_nodes()
