@@ -530,15 +530,17 @@ def display_info(index, all_f_dict, engineered_f_dict):
     valid_samples_df = all_f_df.iloc[row_index_list]
     print("Counts")
     print(valid_samples_df.count())
-    print(valid_samples_df)
     return valid_samples_df
 
 def list_decision_travel_nodes(all_f_dict, LW, LD, RW, RD, L_calc, R_calc):
     '''List nodes where a sample traversed through whilst predicted a sample'''
     # Print successful and failed samples for all features classifier
     classifier = all_f_dict['fitted_estimator']
-    X_test = np.ndarray([[LW, LD, RW, RD, L_calc, R_calc]])
+    X_test = np.ndarray([LW, LD, RW, RD, L_calc, R_calc])
+    X_test = [X_test]
 
+    ic(dir(classifier))
+    ic(classifier.n_features_)
     node_indicator = classifier.decision_path(X_test)
     leave_id = classifier.apply(X_test)
 
@@ -563,6 +565,8 @@ def list_decision_travel_nodes(all_f_dict, LW, LD, RW, RD, L_calc, R_calc):
                  X_test[sample_id, feature[node_id]],
                  threshold_sign,
                  threshold[node_id]))
+    # Unfortunately will have to stop implementing the path printer since I encountered an error that can't problem solve.
+    # Going to explore the tree manually to see why 7th cross validation has got majority of samples failing
 
 
 # In [ ]
@@ -623,18 +627,22 @@ display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
 # <markdown>
 # Trees with the worst performance
 Iteration 5
-    - The trees look very familiar but there's one path that stands out. In the all features tree, on a second node (L_calc <= 13.5), a LD feature was selected and as a result the structure of the path looks different to the path in the engineered tree: the feature gave itself an extra two depths and it had some leaves along the way whereas the engineered tree had a balanced subtree.
-        - Ok this is weird: for the right most node (in all features tree), the gini confidence is the same as that of the engineered branch. I think the value for the gini confidence was still different because the values are rounded and therefore the values would be very close to between each other but still different.
+    - The trees look very familiar but there's one path that stands out. In the all features tree, on a second node ('L_calc' <= 13.5), a 'LD' feature was selected and as a result the structure of the path looks different to the path in the engineered tree: the feature gave itself an extra two depths and it had some leaves along the way whereas the engineered tree had a balanced subtree.
+        - Ok this is weird: for the right most node (in all features tree), the gini confidence is the same as that of the engineered branch. I think the value for the gini confidence was still different because the values are rounded and therefore the values would be very close to between each other but still different. (will need to math for that one)
+        - Also, by looking at the failed samples (which engineered_f tree succeeded), it looks like for samples that have only 2 for 'LW' and 5 'LD' features made the trained model fail by making it think that it's balanced even if the other 4 features indicated that it was leaning on the right.
+            - Note that it's the 10 calculated weight.
+            - By looking at the tree, I followed that the samples that got the class wrong would have to go through (LD <= 4.5) condition on right most path of the tree from the second node of (L_calc <= 13.5).
+        - For other failed samples,
+            - samples that had balanced labels had a thing where each two original feature of each side were the same and either in a repeating or mirrored pattern (look at the table with index of 30, 31). My guess is that a particular node that would get one of the sample would lead them in wrong a path because the mathematical rule dimmed it 'best' to split the dataset at that time.
+            - Similar issue hapens for the 38 and 45 index where it exted left leaning side rather than balanced.
 Iteration 7
     - What's interesting is that half of the left side classes samples fail completely in comparison to the right side (even though the balanced class has 50/50 success/failire rate as well).
     - The trees again look identiacal, but the all_f tree has a node that disticly altered the shape of a subtree, especially for the node under the second node on hte right side (i.e. R_calc <= 13.5). The subtree uses an original attribute to split the samples and it introduces an additional node that would seperate an a subtree strucutre very similar to the engineered_f subtree under the same node I mentioned.
     - There's another node that uses the the original attribute but the leaves under it seem the same between the trees.
+    - Looking at the produced table of failed samples:
+        - It looks like that samples (from 40 to 54 indicies) share three features in common: LW=5, LD=2 and L_calc=10. These samples expected a left class but got balanced class instead.
+            - Ok, by looking at the tree and the node that I noticed that looked out of place (i.e. R_calc <= 13.5) and its following nodes of (LD <= 2.5) and (R_calc <=11.0) will make the samples mentioned into the balanced label even if it's incorrectly mathematically. My speculation is that the tree got overtrained on a particular set of samples that made the subtree with aforementioned nodes.
 
 In conclusion, it seems original attributes, which have been selected as the best sample splitting attribute according to Gini value, affect the structure of the trees in such a way that tested sample fail the most. Therefore, I need to confirm that these attributes affect the classification prediciton of these samples by looking at the path that attributes take.
 
-
-# In [ ]
-Looking at iteration 7
-
-display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
-list_decision_travel_nodes()
+*Additional* conclusion: I noticed something really weird between two trees: it's not only the original feature that ruined the subree creation as to create some sort of overfitting, it's the node that were produced by such feature had either a node or a subtree with 1 or 2 depths that had very few samples at the leaves. In other words, even though the tree was trained to accommodate these few examples, it made the tree fail at getting that 'generalisation' it needs to be accurate... ehm see distinction between two classes.
