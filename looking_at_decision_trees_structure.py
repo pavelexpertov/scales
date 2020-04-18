@@ -128,7 +128,7 @@ Observations about the produced pdfs.
 
 
 # In [ ]
-# Dataset with engineered features
+# Dataset with only weight-related features
 X = df.loc[:, ['LW','RW']]
 y = df.loc[:, ['C']]
 clf = DecisionTreeClassifier()
@@ -147,7 +147,7 @@ for name, importance in l:
 
 
 # In [ ]
-# Dataset with engineered features
+# Dataset with only distance-related features
 X = df.loc[:, ['RD','LD']]
 y = df.loc[:, ['C']]
 clf = DecisionTreeClassifier()
@@ -571,6 +571,7 @@ def list_decision_travel_nodes(all_f_dict, LW, LD, RW, RD, L_calc, R_calc):
 
 # In [ ]
 # Trees
+# Just a test code. Ignore.
 display_info(7, all_features_cv_list[7], engineered_features_cv_list[7])
 
 # In [ ]

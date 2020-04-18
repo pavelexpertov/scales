@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
@@ -26,17 +27,21 @@ d.C.describe()
 
 # In [ ]
 sns.relplot(x="LD", y="RD", hue="C", data=d)
+# plt.savefig('distance.png')
 
 
 # In [ ]
-sns.relplot(x="LD", y="RD", hue="C", data=d)
+sns.relplot(x="LD", y="RW", hue="C", data=d)
+# plt.savefig('left_distance_right_weight.png')
 
 
 # In [ ]
 sns.relplot(x="LW", y="RW", hue="C", data=d)
+# plt.savefig('weight.png')
 
 # In [ ]
-sns.relplot(x="LW", y="RW", hue="C", data=d)
+sns.relplot(x="LW", y="RD", hue="C", data=d)
+# plt.savefig('left_weight_right_distance.png')
 
 # <markdown>
 # By looking at these graphs, it looks like values are proportianally distributed
