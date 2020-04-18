@@ -2,7 +2,7 @@
 
 The dataset here is about measurements of distance and weight for each side of the scale. [Original source](https://archive.ics.uci.edu/ml/datasets/Balance+Scale) for the dataset.
 
-A written blog post about this work is [here](need the source).
+A written blog post about this work is [here](https://pavelexpertov.com/weights-and-trees-how-to-make-decision-trees-to-predict-scales-state/).
 
 The task is to create a predictive model that essentially predicts whether the scales is in a state of having either side (i.e. left or right) tipped up or in balance.
 
